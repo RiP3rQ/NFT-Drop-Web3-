@@ -64,7 +64,12 @@ const NFTDropPage = (props: Props) => {
         </div>
 
         {/* Mint Button */}
-        <div></div>
+        <button
+          className="mt-10 h-16 bg-red-600/80 w-full text-white 
+        rounded-full font-bold"
+        >
+          Mint NFT (0.001 MATIC)
+        </button>
       </div>
     </div>
   );
