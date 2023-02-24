@@ -1,8 +1,14 @@
 import React from "react";
+import { useDisconnect, useMetamask, useAddress } from "@thirdweb-dev/react";
 
 type Props = {};
 
 const NFTDropPage = (props: Props) => {
+  //Auth
+  const address = useAddress();
+  const connectWithMetamask = useMetamask();
+  const disconnect = useDisconnect();
+
   return (
     <div className="flex h-screen flex-col lg:grid lg:grid-cols-10">
       {/* Left Side */}
@@ -36,14 +42,22 @@ const NFTDropPage = (props: Props) => {
           </h1>
 
           <button
+            onClick={() => (address ? disconnect() : connectWithMetamask())}
             className="rounded-full bg-rose-400 px-4 py-2
            text-white text-sm font-bold lg:px-5 lg:py-3 lg:text-base"
           >
-            Connect
+            {address ? "Disconnect" : "Connect"}
           </button>
         </header>
 
         <hr className="my-2 border" />
+
+        {address && (
+          <p className="text-center text-sm text-rose-400">
+            You're logged in with wallet{" "}
+            {address.slice(0, 5) + "..." + address.slice(-5)}
+          </p>
+        )}
 
         {/* Content of Right Side */}
         <div
