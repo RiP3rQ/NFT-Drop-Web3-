@@ -10,6 +10,7 @@ import { sanityClient, urlFor } from "../../sanity";
 import { Collection } from "../../typings";
 import Link from "next/link";
 import { BigNumber } from "ethers";
+import { InfinitySpin } from "react-loader-spinner";
 
 type Props = {
   collection: Collection[];
@@ -19,6 +20,7 @@ const NFTDropPage = ({ collection }: Props) => {
   const [claimedSupply, setClaimedSupply] = useState<number>(0);
   const [totalSupply, setTotalSupply] = useState<BigNumber>();
   const { contract: nftDrop } = useContract(collection.address, "nft-drop");
+  const [loading, setLoading] = useState<boolean>(true);
 
   // Auth
   const address = useAddress();
@@ -30,11 +32,14 @@ const NFTDropPage = ({ collection }: Props) => {
     if (!nftDrop) return;
 
     const fetchNFTDropData = async () => {
+      setLoading(true);
       const claimed = await nftDrop.getAllClaimed();
       const total = await nftDrop.totalSupply();
 
       setClaimedSupply(claimed.length);
       setTotalSupply(total);
+
+      setLoading(false);
     };
 
     fetchNFTDropData();
@@ -107,9 +112,17 @@ const NFTDropPage = ({ collection }: Props) => {
             {collection.title}
           </h1>
 
-          <p className="pt-2 text-xl text-green-500">
-            {claimedSupply}/{totalSupply?.toString()} NFT's claimed
-          </p>
+          {loading ? (
+            <p className="pt-2 text-xl text-green-500 animate-pulse">
+              Loading supply count ...
+            </p>
+          ) : (
+            <p className="pt-2 text-xl text-green-500">
+              {claimedSupply}/{totalSupply?.toString()} NFT's claimed
+            </p>
+          )}
+
+          {loading && <InfinitySpin width="200" color="#4fa94d" />}
         </div>
 
         {/* Mint Button */}
