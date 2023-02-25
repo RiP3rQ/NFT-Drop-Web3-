@@ -3,6 +3,7 @@ import { useDisconnect, useMetamask, useAddress } from "@thirdweb-dev/react";
 import { GetServerSideProps } from "next";
 import { sanityClient, urlFor } from "../../sanity";
 import { Collection } from "../../typings";
+import Link from "next/link";
 
 type Props = {
   collection: Collection[];
@@ -27,10 +28,10 @@ const NFTDropPage = ({ collection }: Props) => {
             />
           </div>
           <div className="text-center p-5 space-y-6">
-            <h1 className="text-4xl font-bold text-white">CRAZY APES</h1>
-            <h2 className="text-xl text-gray-300">
-              A collection of crazy apes who live & breathe in Metaverse!
-            </h2>
+            <h1 className="text-4xl font-bold text-white">
+              {collection.nftCollectionName}
+            </h1>
+            <h2 className="text-xl text-gray-300">{collection.description}</h2>
           </div>
         </div>
       </div>
@@ -38,13 +39,15 @@ const NFTDropPage = ({ collection }: Props) => {
       <div className="flex flex-1 flex-col p-12 lg:col-span-6">
         {/* Header of Right Side */}
         <header className="flex items-center justify-between">
-          <h1 className="w-52 cursor-pointer text-xl font-extralight sm:w-80">
-            The{" "}
-            <span className="font-extrabold underline decoration-pink-600/50">
-              CRAZY
-            </span>{" "}
-            Apes NFT Market Place
-          </h1>
+          <Link href="/">
+            <h1 className="w-52 cursor-pointer text-xl font-extralight sm:w-80">
+              The{" "}
+              <span className="font-extrabold underline decoration-pink-600/50">
+                CRAZY
+              </span>{" "}
+              Apes NFT Market Place
+            </h1>
+          </Link>
 
           <button
             onClick={() => (address ? disconnect() : connectWithMetamask())}
