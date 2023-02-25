@@ -21,6 +21,7 @@ const NFTDropPage = ({ collection }: Props) => {
   const [totalSupply, setTotalSupply] = useState<BigNumber>();
   const { contract: nftDrop } = useContract(collection.address, "nft-drop");
   const [loading, setLoading] = useState<boolean>(true);
+  const [priceInMatic, setPriceInMatic] = useState<string>("");
 
   // Auth
   const address = useAddress();
@@ -28,6 +29,20 @@ const NFTDropPage = ({ collection }: Props) => {
   const disconnect = useDisconnect();
   // ---
 
+  // fetch price for minting
+  useEffect(() => {
+    if (!nftDrop) return;
+
+    const fetchPrice = async () => {
+      const claimCondition = await nftDrop.claimConditions.getAll();
+      setPriceInMatic(claimCondition?.[0].currencyMetadata.displayValue);
+    };
+
+    fetchPrice();
+  }, [nftDrop]);
+  // ---
+
+  // fetching supply of the NFT Drop
   useEffect(() => {
     if (!nftDrop) return;
 
@@ -44,6 +59,7 @@ const NFTDropPage = ({ collection }: Props) => {
 
     fetchNFTDropData();
   }, [nftDrop]);
+  // ---
 
   return (
     <div className="flex h-screen flex-col lg:grid lg:grid-cols-10">
@@ -127,10 +143,21 @@ const NFTDropPage = ({ collection }: Props) => {
 
         {/* Mint Button */}
         <button
+          disabled={
+            loading || claimedSupply === totalSupply?.toNumber() || !address
+          }
           className="mt-10 h-16 bg-red-600/80 w-full text-white 
-        rounded-full font-bold"
+        rounded-full font-bold disabled:bg-gray-400"
         >
-          Mint NFT (0.001 MATIC)
+          {loading ? (
+            <>loading</>
+          ) : claimedSupply === totalSupply?.toNumber() ? (
+            <>SOLD OUT</>
+          ) : !address ? (
+            <>CONNECT WALLET</>
+          ) : (
+            <div>Mint NFT ({priceInMatic}MATIC)</div>
+          )}
         </button>
       </div>
     </div>
