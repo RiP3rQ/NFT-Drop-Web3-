@@ -4,6 +4,9 @@ import {
   useMetamask,
   useAddress,
   useContract,
+  useNetwork,
+  useNetworkMismatch,
+  ChainId,
 } from "@thirdweb-dev/react";
 import { GetServerSideProps } from "next";
 import { sanityClient, urlFor } from "../../sanity";
@@ -22,6 +25,11 @@ const NFTDropPage = ({ collection }: Props) => {
   const { contract: nftDrop } = useContract(collection.address, "nft-drop");
   const [loading, setLoading] = useState<boolean>(true);
   const [priceInMatic, setPriceInMatic] = useState<string>("");
+
+  // Switch Networks if wrong
+  const networkMismatch = useNetworkMismatch();
+  const [, switchNetwork] = useNetwork();
+  // ---
 
   // Auth
   const address = useAddress();
@@ -60,6 +68,35 @@ const NFTDropPage = ({ collection }: Props) => {
     fetchNFTDropData();
   }, [nftDrop]);
   // ---
+
+  const mintNft = () => {
+    if (!nftDrop || !address) return;
+
+    if (networkMismatch) {
+      switchNetwork && switchNetwork(ChainId.Mumbai);
+      return;
+    }
+
+    const quantity = 1; // how many unique NFT to mint
+
+    setLoading(true);
+
+    nftDrop
+      ?.claimTo(address, quantity)
+      .then(async (tx) => {
+        const receipt = tx[0].receipt; // the transaction receipt
+        const claimedTokenId = tx[0].id; // the id of the NFT claimed
+        const claimedNFT = await tx[0].data(); // (optional) get the claimed NFT metadata from the
+
+        console.log(receipt);
+        console.log(claimedTokenId);
+        console.log(claimedNFT);
+      })
+      .catch((err) => console.log(err))
+      .finally(() => {
+        setLoading(false);
+      });
+  };
 
   return (
     <div className="flex h-screen flex-col lg:grid lg:grid-cols-10">
@@ -143,6 +180,7 @@ const NFTDropPage = ({ collection }: Props) => {
 
         {/* Mint Button */}
         <button
+          onClick={mintNft}
           disabled={
             loading || claimedSupply === totalSupply?.toNumber() || !address
           }
