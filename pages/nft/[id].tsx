@@ -1,9 +1,14 @@
 import React from "react";
 import { useDisconnect, useMetamask, useAddress } from "@thirdweb-dev/react";
+import { GetServerSideProps } from "next";
+import { sanityClient, urlFor } from "../../sanity";
+import { Collection } from "../../typings";
 
-type Props = {};
+type Props = {
+  collection: Collection[];
+};
 
-const NFTDropPage = (props: Props) => {
+const NFTDropPage = ({ collection }: Props) => {
   //Auth
   const address = useAddress();
   const connectWithMetamask = useMetamask();
@@ -17,8 +22,8 @@ const NFTDropPage = (props: Props) => {
           <div className="bg-gradient-to-br from-yellow-400 to-purple-600 p-2 rounded-xl">
             <img
               className="w-44 rounded-xl object-cover lg:h-96 lg:w-72"
-              src="https://links.papareact.com/8sg"
-              alt="ape"
+              src={urlFor(collection.previewImage).url()}
+              alt={collection.title}
             />
           </div>
           <div className="text-center p-5 space-y-6">
@@ -66,12 +71,12 @@ const NFTDropPage = (props: Props) => {
         >
           <img
             className="w-80 object-cover pb-10 lg:h-40"
-            src="https://links.papareact.com/bdy"
+            src={urlFor(collection.mainImage).url()}
             alt="apes collection"
           />
 
           <h1 className="text-3xl font-bold lg:text-5xl lg:font-extrabold">
-            The CRAZY Ape Crypto Club | NFT Drop
+            {collection.title}
           </h1>
 
           <p className="pt-2 text-xl text-green-500">13/21 NFT's claimed</p>
@@ -90,3 +95,47 @@ const NFTDropPage = (props: Props) => {
 };
 
 export default NFTDropPage;
+
+export const getServerSideProps: GetServerSideProps = async ({ params }) => {
+  const query = `
+      * [ _type == 'collection' && slug.current == $id][0] {
+      _id,
+        title,
+        address,
+        description,
+        nftCollectionName,
+        mainImage {
+        asset
+        },
+      previewImage {
+        asset
+      },
+      slug {
+        current
+      },
+      creator -> {
+        _id,
+        name,
+        address,
+        slug {
+          current
+        }
+      }
+    }`;
+
+  const collection = await sanityClient.fetch(query, {
+    id: params?.id,
+  });
+
+  if (!collection) {
+    return {
+      notFound: true,
+    };
+  }
+
+  return {
+    props: {
+      collection,
+    },
+  };
+};
