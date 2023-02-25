@@ -1,19 +1,44 @@
-import React from "react";
-import { useDisconnect, useMetamask, useAddress } from "@thirdweb-dev/react";
+import React, { useEffect, useState } from "react";
+import {
+  useDisconnect,
+  useMetamask,
+  useAddress,
+  useContract,
+} from "@thirdweb-dev/react";
 import { GetServerSideProps } from "next";
 import { sanityClient, urlFor } from "../../sanity";
 import { Collection } from "../../typings";
 import Link from "next/link";
+import { BigNumber } from "ethers";
 
 type Props = {
   collection: Collection[];
 };
 
 const NFTDropPage = ({ collection }: Props) => {
-  //Auth
+  const [claimedSupply, setClaimedSupply] = useState<number>(0);
+  const [totalSupply, setTotalSupply] = useState<BigNumber>();
+  const { contract: nftDrop } = useContract(collection.address, "nft-drop");
+
+  // Auth
   const address = useAddress();
   const connectWithMetamask = useMetamask();
   const disconnect = useDisconnect();
+  // ---
+
+  useEffect(() => {
+    if (!nftDrop) return;
+
+    const fetchNFTDropData = async () => {
+      const claimed = await nftDrop.getAllClaimed();
+      const total = await nftDrop.totalSupply();
+
+      setClaimedSupply(claimed.length);
+      setTotalSupply(total);
+    };
+
+    fetchNFTDropData();
+  }, [nftDrop]);
 
   return (
     <div className="flex h-screen flex-col lg:grid lg:grid-cols-10">
@@ -43,9 +68,9 @@ const NFTDropPage = ({ collection }: Props) => {
             <h1 className="w-52 cursor-pointer text-xl font-extralight sm:w-80">
               The{" "}
               <span className="font-extrabold underline decoration-pink-600/50">
-                CRAZY
+                RIP3RQ
               </span>{" "}
-              Apes NFT Market Place
+              NFT Market Place
             </h1>
           </Link>
 
@@ -82,7 +107,9 @@ const NFTDropPage = ({ collection }: Props) => {
             {collection.title}
           </h1>
 
-          <p className="pt-2 text-xl text-green-500">13/21 NFT's claimed</p>
+          <p className="pt-2 text-xl text-green-500">
+            {claimedSupply}/{totalSupply?.toString()} NFT's claimed
+          </p>
         </div>
 
         {/* Mint Button */}
