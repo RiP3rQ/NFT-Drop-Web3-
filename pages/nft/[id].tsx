@@ -15,6 +15,7 @@ import Link from "next/link";
 import { BigNumber } from "ethers";
 import { InfinitySpin } from "react-loader-spinner";
 import toast, { Toaster } from "react-hot-toast";
+import { useRouter } from "next/router";
 
 type Props = {
   collection: Collection[];
@@ -26,6 +27,7 @@ const NFTDropPage = ({ collection }: Props) => {
   const { contract: nftDrop } = useContract(collection.address, "nft-drop");
   const [loading, setLoading] = useState<boolean>(true);
   const [priceInMatic, setPriceInMatic] = useState<string>("");
+  const router = useRouter();
 
   // Switch Networks if wrong
   const networkMismatch = useNetworkMismatch();
@@ -111,7 +113,7 @@ const NFTDropPage = ({ collection }: Props) => {
         const claimedTokenId = tx[0].id; // the id of the NFT claimed
         const claimedNFT = await tx[0].data(); // (optional) get the claimed NFT metadata from the
 
-        toast("HOORAY... You minting was successful", {
+        toast("HOORAY... Your minting was successful", {
           duration: 8000,
           style: {
             background: "green",
@@ -122,9 +124,18 @@ const NFTDropPage = ({ collection }: Props) => {
           },
         });
 
-        console.log(receipt);
-        console.log(claimedTokenId);
-        console.log(claimedNFT);
+        setTimeout(() => {
+          router.push({
+            pathname: `/minted/${claimedNFT.metadata.id}`,
+            query: {
+              name: claimedNFT.metadata.name,
+              image: claimedNFT.metadata.image,
+              description: claimedNFT.metadata.description,
+              owner: claimedNFT.owner,
+              supply: claimedNFT.supply,
+            },
+          });
+        }, 3000);
       })
       .catch((err) =>
         toast("WHOOOPS something didn't go as planed", {
