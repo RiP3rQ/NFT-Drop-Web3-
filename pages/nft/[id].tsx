@@ -18,7 +18,7 @@ import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/router";
 
 type Props = {
-  collection: Collection[];
+  collection: Collection;
 };
 
 const NFTDropPage = ({ collection }: Props) => {
